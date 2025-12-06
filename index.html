@@ -5,9 +5,7 @@
   <title>Atmosfer Jeneratörü Paneli</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 16px;
@@ -63,13 +61,8 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .half {
-      flex: 1 1 48%;
-    }
-    .slider {
-      width: 100%;
-      margin-top: 4px;
-    }
+    .half { flex: 1 1 48%; }
+    .slider { width: 100%; margin-top: 4px; }
     .btnRow {
       display: flex;
       gap: 8px;
@@ -175,7 +168,7 @@
           </div>
         </div>
       </div>
-      <div class="row" style="margin-top:6px;">
+      <div class="row" style="margin-top:6px%;">
         <div class="half">
           <div class="valueBox">
             <div class="valueLabel">Basınç</div>
@@ -201,29 +194,31 @@
 
       <!-- Setpoint -->
       <div>
-        <div class="valueLabel">Setpoint (Field7)</div>
+        <div class="valueLabel">Setpoint (Field7) [-15 &hellip; +50 °C]</div>
         <input
           id="setSlider"
           type="range"
-          min="-10"
-          max="60"
+          min="-15"
+          max="50"
+          step="0.1"
           value="25"
           class="slider"
           oninput="onSetChange(this.value)"
         />
         <div class="valueBox">
-          <span id="lblSet">25</span> °C
+          <span id="lblSet">25.0</span> °C
         </div>
       </div>
 
       <!-- Fan Hızı -->
       <div style="margin-top:14px;">
-        <div class="valueLabel">Fan PWM / Hız (Field8)</div>
+        <div class="valueLabel">Fan PWM / Hız (Field8) [0 &hellip; 255]</div>
         <input
           id="fanSlider"
           type="range"
           min="0"
           max="255"
+          step="1"
           value="120"
           class="slider"
           oninput="onFanChange(this.value)"
@@ -234,13 +229,11 @@
       </div>
     </div>
 
-    <!-- ÇALIŞMA MODLARI -->
+    <!-- MOD & RÜZGÂR (ŞİMDİLİK SADECE GÖRSEL / İLERİ İÇİN) -->
     <div class="card">
-      <h2>Mod & Rüzgâr Ayarları</h2>
-
-      <!-- Mod Seçimi -->
+      <h2>Mod & Rüzgâr Ayarları (Gelecek İçin)</h2>
       <div>
-        <div class="valueLabel">Çalışma Modu (Field4 - önerilen)</div>
+        <div class="valueLabel">Çalışma Modu (şimdilik UNO/ESP kullanmıyor)</div>
         <select id="selMode" onchange="onModeChange(this.value)">
           <option value="0">Otomatik</option>
           <option value="1">Isıtma</option>
@@ -248,112 +241,61 @@
         </select>
       </div>
 
-      <!-- Rüzgar Tüneli -->
       <div style="margin-top:12px;">
-        <div class="valueLabel">Rüzgar Tüneli Modu (Field5 - önerilen)</div>
+        <div class="valueLabel">Rüzgar Tüneli Modu (şimdilik pasif)</div>
         <select id="selWindMode" onchange="onWindModeChange(this.value)">
           <option value="0">Auto</option>
           <option value="1">Breeze</option>
           <option value="2">Storm</option>
         </select>
       </div>
+
+      <div class="small" style="margin-top:10px;">
+        Not: Bu karttaki seçimler henüz UNO/ESP koduna bağlı değil.
+        İleride istersen tek bir komut field'ine paketleyip UNO tarafında
+        çözebiliriz.
+      </div>
     </div>
 
-    <!-- SİSTEM START/STOP & FAN 220V -->
+    <!-- SİSTEM START/STOP (ŞİMDİLİK GÖRSEL) -->
     <div class="card">
-      <h2>Sistem Güç Kontrol</h2>
+      <h2>Sistem Güç Kontrol (Gelecek İçin)</h2>
 
-      <div class="valueLabel">Sistem Başlat / Durdur (Field6 - önerilen)</div>
+      <div class="valueLabel">Sistem Başlat / Durdur</div>
       <div class="btnRow">
-        <button class="btn btn-green" onclick="sendField(6,1)">BAŞLAT</button>
-        <button class="btn btn-red" onclick="sendField(6,0)">DURDUR</button>
+        <button class="btn btn-green" onclick="sendField(6,1)">BAŞLAT (Field6)</button>
+        <button class="btn btn-red"   onclick="sendField(6,0)">DURDUR (Field6)</button>
       </div>
 
-      <div class="valueLabel" style="margin-top:16px;">220V Fan Rölesi (Field3 - önerilen)</div>
+      <div class="valueLabel" style="margin-top:16px;">220V Fan Rölesi</div>
       <div class="btnRow">
-        <button class="btn btn-blue" onclick="sendField(3,1)">220V FAN AÇ</button>
-        <button class="btn btn-red" onclick="sendField(3,0)">220V FAN KAPAT</button>
+        <button class="btn btn-blue" onclick="sendField(3,1)">220V FAN AÇ (Field3)</button>
+        <button class="btn btn-red"  onclick="sendField(3,0)">220V FAN KAPAT (Field3)</button>
       </div>
 
       <div class="small" style="margin-top:10px;">
-        Not: Hangi field’in ne kontrol ettiği ESP / UNO yazılımında
-        belirlenir. Buradan sadece ThingSpeak’e komut yazılıyor.
+        Not: Şu anda UNO/ESP sensör verilerini Field1–6'ya yazdığı için
+        bu butonların gönderdiği değerler hemen üzerine yazılacak.
+        Yani henüz gerçek kontrol yapmıyorlar; ileride ayrı komut kanalı
+        veya JSON field tasarlarsak kullanacağız.
       </div>
     </div>
   </div>
 
   <script>
-    // -------------------------------
-    // KONFİG
-    // -------------------------------
-    const WRITE_API_KEY = "N571JCXX26EWY335"; // SENİN WRITE KEY
-    const CHANNEL_ID = 3194934;              // SENİN KANAL
-    const READ_API_KEY = "";                 // Kanal private ise doldur, public ise boş kalabilir
-
-    // ThingSpeak'ten son feed'i çek ve sensör alanlarını doldur
-    async function fetchLastFeed() {
-      try {
-        let url =
-          "https://api.thingspeak.com/channels/" +
-          CHANNEL_ID +
-          "/feeds.json?results=1";
-        if (READ_API_KEY && READ_API_KEY.length > 0) {
-          url += "&api_key=" + READ_API_KEY;
-        }
-
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        if (!data.feeds || data.feeds.length === 0) throw new Error("Feed yok");
-
-        const f = data.feeds[0];
-
-        // Şu anki tipik eşleme (daha önce konuştuğumuz):
-        // field1 = T1, field2 = T2, field3 = Nem, field4 = Ruzgar,
-        // field5 = Basınç, field6 = Yükseklik, field7 = Fan/Set vb.
-
-        setText("valT1", safeNum(f.field1));
-        setText("valT2", safeNum(f.field2));
-        setText("valNem", safeNum(f.field3));
-        setText("valRzg", safeNum(f.field4));
-        setText("valBas", safeNum(f.field5));
-        setText("valYuk", safeNum(f.field6));
-
-        // Setpoint ve Fan slider'larını da varsa son değere yaklaştır
-        if (f.field7 !== null && f.field7 !== undefined) {
-          const sv = Number(f.field7);
-          if (!isNaN(sv)) {
-            document.getElementById("setSlider").value = sv;
-            document.getElementById("lblSet").textContent = sv.toFixed(1);
-          }
-        }
-
-        if (f.field8 !== null && f.field8 !== undefined) {
-          const fv = Number(f.field8);
-          if (!isNaN(fv)) {
-            document.getElementById("fanSlider").value = fv;
-            document.getElementById("lblFan").textContent = fv.toFixed(0);
-          }
-        }
-
-        setStatus(true, "Son veri zamanı: " + (f.created_at || ""));
-      } catch (e) {
-        console.error("ThingSpeak okuma hatası:", e);
-        setStatus(false, "ThingSpeak okunamadı");
-      }
-    }
+    const WRITE_API_KEY = "N571JCXX26EWY335";
+    const CHANNEL_ID = 3194934;
+    const READ_API_KEY = ""; // kanal priv ise doldur
 
     function safeNum(v) {
       const n = Number(v);
       if (isNaN(n)) return "--";
       return n.toFixed(2);
     }
-
     function setText(id, txt) {
       const el = document.getElementById(id);
       if (el) el.textContent = txt;
     }
-
     function setStatus(ok, msg) {
       const dot = document.getElementById("statusDot");
       const txt = document.getElementById("statusText");
@@ -364,9 +306,60 @@
       txt.textContent = msg;
     }
 
-    // -------------------------------
-    // KOMUT GÖNDERME
-    // -------------------------------
+    async function fetchLastFeed() {
+      try {
+        let url =
+          "https://api.thingspeak.com/channels/" +
+          CHANNEL_ID +
+          "/feeds.json?results=1";
+        if (READ_API_KEY && READ_API_KEY.length > 0) {
+          url += "&api_key=" + READ_API_KEY;
+        }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (!data.feeds || data.feeds.length === 0) throw new Error("Feed yok");
+        const f = data.feeds[0];
+
+        setText("valT1", safeNum(f.field1));
+        setText("valT2", safeNum(f.field2));
+        setText("valNem", safeNum(f.field3));
+        setText("valRzg", safeNum(f.field4));
+        setText("valBas", safeNum(f.field5));
+        setText("valYuk", safeNum(f.field6));
+
+        // Setpoint & Fan slider'larını da güncelle (clamp ile)
+        const setSlider = document.getElementById("setSlider");
+        const lblSet = document.getElementById("lblSet");
+        if (f.field7 !== null && f.field7 !== undefined && setSlider && lblSet) {
+          let sv = Number(f.field7);
+          if (!isNaN(sv)) {
+            if (sv < -15) sv = -15;
+            if (sv > 50)  sv = 50;
+            setSlider.value = sv;
+            lblSet.textContent = sv.toFixed(1);
+          }
+        }
+
+        const fanSlider = document.getElementById("fanSlider");
+        const lblFan = document.getElementById("lblFan");
+        if (f.field8 !== null && f.field8 !== undefined && fanSlider && lblFan) {
+          let fv = Number(f.field8);
+          if (!isNaN(fv)) {
+            if (fv < 0)   fv = 0;
+            if (fv > 255) fv = 255;
+            fanSlider.value = fv;
+            lblFan.textContent = fv.toFixed(0);
+          }
+        }
+
+        setStatus(true, "Son veri zamanı: " + (f.created_at || ""));
+      } catch (e) {
+        console.error("ThingSpeak okuma hatası:", e);
+        setStatus(false, "ThingSpeak okunamadı");
+      }
+    }
+
     function sendField(field, value) {
       const url =
         "https://api.thingspeak.com/update?api_key=" +
@@ -375,42 +368,34 @@
         field +
         "=" +
         encodeURIComponent(value);
-
       fetch(url)
         .then((r) => r.text())
-        .then((t) => {
-          console.log("Field" + field + " gonderildi:", value, "→ TS:", t);
-        })
+        .then((t) =>
+          console.log("Field" + field + " gonderildi:", value, "→ TS:", t)
+        )
         .catch((e) => console.error("TS gonderim hatasi:", e));
     }
 
-    // Slider eventleri
     function onSetChange(val) {
-      document.getElementById("lblSet").textContent = Number(val).toFixed(1);
-      sendField(7, val); // Field7 = Setpoint komutu
+      const v = Number(val);
+      document.getElementById("lblSet").textContent = v.toFixed(1);
+      sendField(7, v); // Field7 = Setpoint
     }
 
     function onFanChange(val) {
-      document.getElementById("lblFan").textContent = Number(val).toFixed(0);
-      sendField(8, val); // Field8 = Fan PWM komutu
+      const v = Number(val);
+      document.getElementById("lblFan").textContent = v.toFixed(0);
+      sendField(8, v); // Field8 = Fan PWM
     }
 
-    // Mod seçimi
+    // Şimdilik mod & rüzgar sadece ileride kullanmak için
     function onModeChange(val) {
-      // Önerilen: field4 ya da başka boş bir field
-      // Şimdilik field4'e yazıyoruz (ileri de sensör/komut ayrımını kodda yaparsın)
-      sendField(4, val);
+      console.log("Mode seçildi (şimdilik pasif):", val);
     }
-
-    // Rüzgar modu
     function onWindModeChange(val) {
-      // Önerilen: field5 (veya başka bir field)
-      sendField(5, val);
+      console.log("Rüzgar modu seçildi (şimdilik pasif):", val);
     }
 
-    // -------------------------------
-    // PERİYODİK GÜNCELLEME
-    // -------------------------------
     fetchLastFeed();
     setInterval(fetchLastFeed, 10000); // 10 sn'de bir oku
   </script>
